@@ -7,7 +7,7 @@ export default function YoutubeCard({video}){
     return(
         <Grid item xs={12} sm={6} md={4} xl={3}>
             <Link href={video ? `/watch?id=${video.id}` : "#"} underline='none'>
-                <CardActionArea>
+                <CardActionArea sx={{borderRadius: 2}}>
                     <Card elevation={0}>
                         {video ?
                         <CardMedia

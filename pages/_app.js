@@ -1,6 +1,5 @@
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { useEffect, useMemo } from 'react';
 import DrawerLayout from '../components/DrawerLayout';
 import Head from 'next/head';
 import useLocalStorage from '../util/use-local-storage';

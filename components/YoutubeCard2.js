@@ -6,13 +6,13 @@ export default function YoutubeCard2({video}){
     return(
         <Box sx={{width: '100%'}}>
             <Link href={video ? `/watch?id=${video.id}` : "#"} underline='none'>
-                <CardActionArea>
+                <CardActionArea sx={{borderRadius: 2}}>
                     <Card elevation={0}>
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={5}>
                                 {video ?
                                 <CardMedia
-                                    sx={{ aspectRatio: '16 / 9', borderRadius: 2, marginBottom: 2}}
+                                    sx={{ aspectRatio: '16 / 9', borderRadius: 2}}
                                     image={video.thumbnail.url}
                                     title={video.title}
                                 />
