@@ -1,4 +1,4 @@
-import { Box, Stack, Card, Divider, Typography, CardContent, Button, Link, ButtonGroup, IconButton, CardActionArea } from '@mui/material'
+import { Box, Stack, Card, Divider, Typography, CardContent, Button, Link, ButtonGroup, IconButton, CardActionArea, Collapse } from '@mui/material'
 import { Share, ThumbUp, ThumbDown } from '@mui/icons-material'
 import YoutubeCard2 from '../components/YoutubeCard2'
 import useLoading from '../util/use-loading'
@@ -16,6 +16,7 @@ export default function Search({mainVideo, similarVideo, time}) {
     const isLoading = useLoading()
     const [isSubscribed, setSubscribed] = useState(false)
     const [channels, setChannels] = useLocalStorage("channels", [])
+    const [showMore, setShowMore] = useState(false);
     const { asPath } = useRouter()
 
     useEffect(() => {
@@ -85,14 +86,15 @@ export default function Search({mainVideo, similarVideo, time}) {
                     <Divider orientation='vertical' flexItem/>
                     <Typography fontSize={14} fontWeight={"bold"}>{mainVideo.uploadedAt}</Typography>
                 </Box>
-                <CardActionArea sx={{borderRadius: 3}}>
-                    <Card sx={{borderRadius: 3}}>
-                        <CardContent>
-                            <Typography fontSize={14} component="div">
-                                {parser(mainVideo.description.split('\n').join('<br/>'))}
-                            </Typography>
-                        </CardContent>
-                    </Card>
+                <CardActionArea sx={{borderRadius: 3}} onClick={() => setShowMore(!showMore)}>
+                        <Card sx={{borderRadius: 3}}>
+                            <CardContent>
+                                <Typography fontSize={14} component="div">
+                                    {showMore ? parser(mainVideo.description.split('\n').join('<br/>')) : parser((mainVideo.description.substring(0, 200) + "...").split('\n').join('<br/>'))}
+                                    <span style={{fontWeight: 'bold'}}>{showMore ? <><br/><br/>{"Show less"}</> : " Show more"}</span>
+                                </Typography>
+                            </CardContent>
+                        </Card>
                 </CardActionArea>
             </Box>
             <Divider/>

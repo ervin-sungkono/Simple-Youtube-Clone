@@ -2,22 +2,22 @@
     "presets": ["next/babel"],
     "plugins": [
         [
-        'babel-plugin-import',
+        "babel-plugin-import",
         {
-          libraryName: '@mui/material',
-          libraryDirectory: '',
-          camel2DashComponentName: false,
+          "libraryName": "@mui/material",
+          "libraryDirectory": "",
+          "camel2DashComponentName": false
         },
-        'core',
+        "core"
       ],
       [
-        'babel-plugin-import',
+        "babel-plugin-import",
         {
-          libraryName: '@mui/icons-material',
-          libraryDirectory: '',
-          camel2DashComponentName: false,
+          "libraryName": "@mui/icons-material",
+          "libraryDirectory": "",
+          "camel2DashComponentName": false
         },
-        'icons',
-      ],
+        "icons"
+      ]
     ]
   }

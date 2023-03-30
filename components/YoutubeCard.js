@@ -1,5 +1,5 @@
 import { Sensors } from '@mui/icons-material'
-import { Grid, Box, Card, CardMedia, Typography, Skeleton, Link, Chip, CardActionArea} from '@mui/material'
+import { Grid, Box, Card, CardMedia, Typography, Skeleton, Link, Chip, CardActionArea, Tooltip} from '@mui/material'
 import abbrev from '../util/format'
 import ImageWithFallback from './ImageWithFallback'
 
@@ -7,7 +7,7 @@ export default function YoutubeCard({video}){
     return(
         <Grid item xs={12} sm={6} md={4} xl={3}>
             <Link href={video ? `/watch?id=${video.id}` : "#"} underline='none'>
-                <CardActionArea sx={{borderRadius: 2}}>
+                <CardActionArea sx={{borderRadius: 2, pb: 2}}>
                     <Card elevation={0}>
                         {video ?
                         <CardMedia
@@ -19,16 +19,18 @@ export default function YoutubeCard({video}){
                         <Skeleton variant="rounded" animation={"wave"} width={"100%"} height={360*9/16} sx={{aspectRatio: '16 / 9', marginBottom: 2}}/>}
                     <Box sx={{display: 'flex', gap: 2}}>
                         {video ?
-                        <Link href={`/channel?id=${video.channel.id}`} sx={{zIndex: 999}}>
-                            <ImageWithFallback
-                                src={video.channel.icon}
-                                fallbackSrc={"/static/default-profile-icon.jpg"}
-                                width={36} 
-                                height={36} 
-                                style={{objectFit: 'cover', borderRadius: '50%'}}
-                                alt=""
-                            />
-                        </Link>
+                        <Tooltip title={`${video.channel.name}'s Channel`} arrow placement='top'>
+                            <Link href={`/channel?id=${video.channel.id}`} sx={{zIndex: 999}}>
+                                <ImageWithFallback
+                                    src={video.channel.icon}
+                                    fallbackSrc={"/static/default-profile-icon.jpg"}
+                                    width={36} 
+                                    height={36} 
+                                    style={{objectFit: 'cover', borderRadius: '50%'}}
+                                    alt=""
+                                />
+                            </Link>
+                        </Tooltip>
                         :
                         <Skeleton variant="circular" animation={"wave"} width={36} height={36} />}
                         <Box sx={{flexGrow: 1}}>

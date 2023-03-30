@@ -7,7 +7,7 @@ export default function Home({homepageData, time}) {
   const isLoading = useLoading()
   return (
     <Box sx={{ flexGrow: 1, paddingInline: {xs: 0, sm: 4, md: 6} }}>
-      <Grid container rowSpacing={5} columnSpacing={2}>
+      <Grid container rowSpacing={4} columnSpacing={2}>
         {(isLoading ? Array.from(new Array(9)) : homepageData).map((video, index) => (
           <YoutubeCard video={video} key={video?.id ?? index}/>
         ))}

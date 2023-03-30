@@ -119,15 +119,6 @@ export default function DrawerLayout({children, channels}) {
     router.push(`/search?query=${query}`)
   }
 
-  function stringAvatar(name) {
-    return {
-      sx: {
-        bgcolor: '#EEE',
-      },
-      children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
-    };
-  }
-
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar position="fixed" open={open}>
@@ -214,7 +205,7 @@ export default function DrawerLayout({children, channels}) {
                       mr: open ? 3 : 'auto',
                     }}
                   >
-                    <Avatar {...stringAvatar(channel.name)} alt="" src={channel.icon} />
+                    <Avatar alt="" src={channel.icon} />
                   </ListItemAvatar>
                   <ListItemText primary={channel.name} sx={{ opacity: open ? 1 : 0, overflow: "hidden", textOverflow: "ellipsis"}} />
                 </ListItemButton>
@@ -223,7 +214,7 @@ export default function DrawerLayout({children, channels}) {
           ))}
         </List>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 2 }}>
         <DrawerHeader/>
         {children}
       </Box>
