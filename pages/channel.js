@@ -1,17 +1,25 @@
-import { Avatar, Box, Button, Divider, Link, Typography, Grid } from '@mui/material'
+import { Avatar, Box, Button, Link, Typography, Grid, CircularProgress, Divider } from '@mui/material'
 import ImageWithFallback from '../components/ImageWithFallback'
+import InfiniteScroll from 'react-infinite-scroll-component'
 import { useEffect, useState } from 'react'
 import useLoading from '../util/use-loading'
 import useLocalStorage from '../util/use-local-storage'
+import moment from 'moment/moment'
+import parser from 'html-react-parser'
 
 import YoutubeCard from '../components/YoutubeCard'
+import BasicTab from '../components/BasicTab'
 
-export default function Home({channelInfo, homepageData, actualTime, totalTime}) {
+export default function Home({channelInfo, videosData, statsData, continuationId, actualTime, totalTime}) {
     console.log(`Time taken(channel): ${actualTime}ms (saved ${totalTime - actualTime}ms with Promise.all())`)
-    // console.log(channelInfo, homepageData)
+    console.log(statsData)
+    // console.log(channelInfo, videosData)
     const isLoading = useLoading()
     const [isSubscribed, setSubscribed] = useState(false)
     const [channels, setChannels] = useLocalStorage("channels", [])
+    const [moreVideos, setMoreVideos] = useState([])
+    const [hasMore, setHasMore] = useState(false)
+    const [continuation, setContinuation] = useState(continuationId)
 
     useEffect(() => {
         if(channels.find(channel => channel.id === channelInfo.authorId)) setSubscribed(true)
@@ -31,10 +39,77 @@ export default function Home({channelInfo, homepageData, actualTime, totalTime})
             setChannels(newChannels)
         }
     }
+
+    const fetchMoreVideos = async() => {
+        // if(continuation === null){
+        //     setHasMore(false)
+        //     return
+        // }
+        // await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/more_videos?continuation=${continuation}`)
+        //     .then(res => res.json())
+        //     .then(videos => {
+        //         setMoreVideos(videos.data)
+        //         setContinuation(videos.continuation)
+        //     })
+    }
+
+    const channelLinks = [
+        {
+            label: "Home",
+            component: 
+                <InfiniteScroll
+                    dataLength={videosData.length}
+                    next={fetchMoreVideos}
+                    hasMore={hasMore}
+                    loader={
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <CircularProgress disableShrink/>
+                        </Box>
+                    }
+                    endMessage={
+                        <Typography textAlign={'center'} marginTop={2} color={'text.secondary'}>
+                            Yay! You have seen it all
+                        </Typography>
+                    }
+                >
+                    <Grid container rowSpacing={4} columnSpacing={2}>
+                        {(isLoading ? Array.from(new Array(9)) : [...videosData, ...moreVideos]).map((video, index) => (
+                            <YoutubeCard video={video} isChannel key={video?.id ?? index}/>
+                        ))}
+                    </Grid>
+                </InfiniteScroll>
+        },
+        {
+            label: "About",
+            component: 
+            <Box width={"100%"}>
+                <Typography gutterBottom variant='subtitle2' fontWeight={"bold"}>
+                    Description
+                </Typography>
+                <Typography gutterBottom variant='body2' color={'text.secondary'}>
+                    {parser(channelInfo.description.split('\n').join('<br/>'))}
+                </Typography>
+                <Divider sx={{my: 2}}/>
+                <Typography gutterBottom variant='subtitle2' fontWeight={"bold"}>
+                    Joined
+                </Typography>
+                <Typography gutterBottom variant='body2' color={'text.secondary'}>
+                    {moment(statsData.joinedDate).format("DD MMM YYYY")}
+                </Typography>
+                <Divider sx={{my: 2}}/>
+                <Typography gutterBottom variant='subtitle2' fontWeight={"bold"}>
+                    Location
+                </Typography>
+                <Typography gutterBottom variant='body2' color={'text.secondary'}>
+                    {statsData.location}
+                </Typography>
+            </Box>
+        }
+    ]
  
     return (
         <Box sx={{flexGrow: 1}} height={"100%"}>
-            <Box sx={{position: 'relative', aspectRatio: {xs: '16 / 5',md: '16 / 3'}}} width={"100%"} component={"div"}>
+            <Box sx={{position: 'relative', aspectRatio: {xs: '16 / 5',md: '16 / 2'}}} width={"100%"} component={"div"}>
                 <ImageWithFallback
                     src={channelInfo.authorBanners?.[channelInfo.authorBanners.length - 1].url}
                     fallbackSrc={"/static/placeholder-banner.png"}
@@ -43,14 +118,14 @@ export default function Home({channelInfo, homepageData, actualTime, totalTime})
                     alt=""
                 />
             </Box>
-            <Box px={{xs: 0, md: 8}} py={{xs: 2, md: 4}} display={'flex'} flexDirection={{xs: 'column', sm: 'row'}} justifyContent={'space-between'} alignItems={'center'}>
+            <Box px={{xs: 0,sm:4, md: 8}} py={{xs: 2, md: 4}} display={'flex'} flexDirection={{xs: 'column', sm: 'row'}} justifyContent={'space-between'} alignItems={'center'}>
                 <Box component={"div"} sx={{display: 'flex', alignItems: 'center'}} flexDirection={{xs: 'column', sm: 'row'}} marginBottom={{xs: 2, sm: 0}}>
                     <Avatar 
                         src={channelInfo.authorThumbnails?.[channelInfo.authorThumbnails.length - 1].url}
                         sx={{width: {xs: 64, sm: 96, md: 128}, height: {xs: 64, sm: 96, md: 128}, marginBottom: {xs: 2, md: 0}}}
                         alt={channelInfo.author}
                     />
-                    <Box flexDirection={"column"} marginLeft={{xs: 2, md: 4}} textAlign={{xs: "center", sm: "start"}}>
+                    <Box flexGrow={1} flexDirection={"column"} marginLeft={{xs: 2, md: 4}} textAlign={{xs: "center", sm: "start"}}>
                         <Typography gutterBottom variant='h5' fontSize={{xs: 16, sm: 20, md: 24}} fontWeight={'bold'}>
                             {channelInfo.author}
                         </Typography>
@@ -69,14 +144,11 @@ export default function Home({channelInfo, homepageData, actualTime, totalTime})
                         </Typography>
                     </Box>
                 </Box>
-                <Button variant='contained' sx={{borderRadius: 999, textTransform: 'none', fontWeight: 'bold'}} color={isSubscribed ? 'success' : 'error'} onClick={handleSubscription}>{isSubscribed ? "Subscribed!" : "Subscribe"}</Button>
+                <Box sx={{ml: 2}}>
+                    <Button variant='contained' sx={{borderRadius: 999, textTransform: 'none', fontWeight: 'bold'}} color={isSubscribed ? 'success' : 'error'} onClick={handleSubscription}>{isSubscribed ? "Subscribed!" : "Subscribe"}</Button>
+                </Box>
             </Box>
-            <Divider variant='middle'/>
-            {/* <Grid container rowSpacing={4} columnSpacing={2}>
-                {(isLoading ? Array.from(new Array(9)) : homepageData).map((video, index) => (
-                    <YoutubeCard video={video} key={video?.id ?? index}/>
-                ))}
-            </Grid> */}
+            <BasicTab links={channelLinks}/>
         </Box>
     )
 }
@@ -94,16 +166,19 @@ export async function getServerSideProps({query}){
     const entry = Date.now()
     
     const channelRequest = fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel?channelId=${id}`).then(res => res.json())
-    const homepageRequest = fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/homepage?channelId=${id}`).then(res => res.json())
+    const videosRequest = fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/videos?channelId=${id}`).then(res => res.json())
+    const statsRequest = fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/stats?channelId=${id}`).then(res => res.json())
 
-    const [channelData, homepageData] = await Promise.all([channelRequest, homepageRequest])
+    const [channelData, videosData, statsData] = await Promise.all([channelRequest, videosRequest, statsRequest])
 
     return{
         props:{
             channelInfo: channelData.data,
-            homepageData: homepageData.data,
+            videosData: videosData.data,
+            statsData : statsData.data,
+            continuationId: videosData.continuation,
             actualTime: Date.now() - entry,
-            totalTime: channelData.time + homepageData.time
+            totalTime: channelData.time + videosData.time + statsData.time
         }
     }
 }

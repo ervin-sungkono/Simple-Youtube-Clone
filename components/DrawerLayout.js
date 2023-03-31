@@ -15,7 +15,8 @@ import {
   Link,
   ListItemAvatar,
   Avatar,
-  Typography
+  Typography,
+  Tooltip
 } from '@mui/material'
 import { Menu, ChevronLeft, Home } from '@mui/icons-material';
 import SearchBar from './SearchBar';
@@ -192,23 +193,25 @@ export default function DrawerLayout({children, channels}) {
           {(isLoading ? [] : channels).map((channel) => (
             <Link href={`/channel?id=${channel.id}`} color='inherit' underline='none' key={channel.id}>
               <ListItem disablePadding sx={{ display: 'block' }}>
-                <ListItemButton
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                  }}
-                >
-                  <ListItemAvatar
+                <Tooltip title={`${channel.name}'s Channel`} arrow placement='top-end'>
+                  <ListItemButton
                     sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
+                      minHeight: 48,
+                      justifyContent: open ? 'initial' : 'center',
+                      px: 2.5,
                     }}
                   >
-                    <Avatar alt="" src={channel.icon} />
-                  </ListItemAvatar>
-                  <ListItemText primary={channel.name} sx={{ opacity: open ? 1 : 0, overflow: "hidden", textOverflow: "ellipsis"}} />
-                </ListItemButton>
+                    <ListItemAvatar
+                      sx={{
+                        minWidth: 0,
+                        mr: open ? 3 : 'auto',
+                      }}
+                    >
+                      <Avatar alt="" src={channel.icon} />
+                    </ListItemAvatar>
+                    <ListItemText primary={channel.name} sx={{ opacity: open ? 1 : 0, overflow: "hidden", textOverflow: "ellipsis"}} />
+                  </ListItemButton>
+                </Tooltip>
               </ListItem>
             </Link>
           ))}
