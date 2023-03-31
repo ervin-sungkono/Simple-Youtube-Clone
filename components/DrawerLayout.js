@@ -116,7 +116,7 @@ export default function DrawerLayout({children, channels}) {
       .then(data => setAutocomplete(data.data))
   }
 
-  const handleSearch = async(query) => {
+  const handleSearch = (query) => {
     router.push(`/search?query=${query}`)
   }
 
@@ -142,7 +142,12 @@ export default function DrawerLayout({children, channels}) {
             <Image src={"/static/yt-logo-white.png"} width={128} height={56} alt="" style={{objectFit: 'contain'}} priority/>
             }
           </Link>
-          <SearchBar data={autocomplete} getSearchAutocomplete={getSearchAutocomplete} handleSearch={handleSearch}/>
+          <SearchBar 
+            id={"yt-video-search"}
+            data={autocomplete}
+            getSearchAutocomplete={getSearchAutocomplete}
+            handleSearch={handleSearch}
+          />
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
@@ -193,7 +198,7 @@ export default function DrawerLayout({children, channels}) {
           {(isLoading ? [] : channels).map((channel) => (
             <Link href={`/channel?id=${channel.id}`} color='inherit' underline='none' key={channel.id}>
               <ListItem disablePadding sx={{ display: 'block' }}>
-                <Tooltip title={`${channel.name}'s Channel`} arrow placement='top-end'>
+                <Tooltip title={`${channel.name}'s Channel`} arrow placement='right-start'>
                   <ListItemButton
                     sx={{
                       minHeight: 48,

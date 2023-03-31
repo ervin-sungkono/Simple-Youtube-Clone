@@ -9,17 +9,21 @@ import parser from 'html-react-parser'
 
 import YoutubeCard from '../components/YoutubeCard'
 import BasicTab from '../components/BasicTab'
+import SearchBar from '../components/SearchBar'
 
-export default function Home({channelInfo, videosData, statsData, continuationId, actualTime, totalTime}) {
+export default function Home({channelInfo, videosData, statsData, videoContinuationId, actualTime, totalTime}) {
     console.log(`Time taken(channel): ${actualTime}ms (saved ${totalTime - actualTime}ms with Promise.all())`)
-    console.log(statsData)
-    // console.log(channelInfo, videosData)
+    // console.log(channelInfo, videosData, statsData)
     const isLoading = useLoading()
     const [isSubscribed, setSubscribed] = useState(false)
     const [channels, setChannels] = useLocalStorage("channels", [])
     const [moreVideos, setMoreVideos] = useState([])
+    const [searchResults, setSearchResults] = useState([])
+    const [searchAutocomplete, setSearchAutocomplete] = useState([])
     const [hasMore, setHasMore] = useState(false)
-    const [continuation, setContinuation] = useState(continuationId)
+    const [hasMoreSearch, setHasMoreSearch] = useState(true)
+    const [videoContinuation, setVideoContinuation] = useState(videoContinuationId)
+    const [searchContinuation, setSearchContinuation] = useState(null)
 
     useEffect(() => {
         if(channels.find(channel => channel.id === channelInfo.authorId)) setSubscribed(true)
@@ -31,7 +35,7 @@ export default function Home({channelInfo, videosData, statsData, continuationId
             const newChannel = {
                 id: channelInfo.authorId,
                 name: channelInfo.author,
-                icon: channelInfo.authorThumbnails?.[0].url ?? ""
+                icon: channelInfo.authorThumbnails?.[channelInfo.authorThumbnails.length - 1].url ?? ""
             }
             setChannels([...channels, newChannel])
         }else{
@@ -41,16 +45,48 @@ export default function Home({channelInfo, videosData, statsData, continuationId
     }
 
     const fetchMoreVideos = async() => {
-        // if(continuation === null){
-        //     setHasMore(false)
-        //     return
-        // }
-        // await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/more_videos?continuation=${continuation}`)
+        // await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/more_videos?continuation=${videoContinuation}`)
         //     .then(res => res.json())
         //     .then(videos => {
         //         setMoreVideos(videos.data)
-        //         setContinuation(videos.continuation)
+        //         setVideoContinuation(videos.continuation)
         //     })
+        // if(videoContinuation === null){
+        //     setHasMore(false)
+        // }
+    }
+
+    useEffect(() => {
+        if(searchContinuation === null || searchResults.length >= 200) setHasMoreSearch(false)
+        else setHasMoreSearch(true)
+    },[searchContinuation, searchResults])
+
+    const getSearchAutocomplete = async(query) =>{
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/search?channelId=${channelInfo.authorId}&query=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                setSearchAutocomplete(data.data)
+            })
+    }
+
+    const handleSearch = async(query) => {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/search?channelId=${channelInfo.authorId}&query=${query}`)
+            .then(res => res.json())
+            .then(videos => {
+                setSearchResults(videos.data)
+                setSearchContinuation(videos.continuation)
+            })
+    }
+
+    const fetchMoreSearchResults = async() => {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel/more_search?continuation=${searchContinuation}`)
+            .then(res => res.json())
+            .then(videos => {
+                console.log("result:",videos)
+                setSearchResults([...searchResults, ...videos.data])
+                setSearchContinuation(videos.continuation)
+            })
+            .catch(error => setHasMoreSearch(false))
     }
 
     const channelLinks = [
@@ -71,15 +107,51 @@ export default function Home({channelInfo, videosData, statsData, continuationId
                             Yay! You have seen it all
                         </Typography>
                     }
+                    style={{overflowY: 'hidden'}}
                 >
                     <Grid container rowSpacing={4} columnSpacing={2}>
                         {(isLoading ? Array.from(new Array(9)) : [...videosData, ...moreVideos]).map((video, index) => (
-                            <YoutubeCard video={video} isChannel key={video?.id ?? index}/>
+                            <YoutubeCard video={video} isChannel key={`${video?.id}-${index}`?? index}/>
                         ))}
                     </Grid>
                 </InfiniteScroll>
-        },
-        {
+                
+        },{
+            label: 'Search',
+            component: 
+            <Box>
+                <SearchBar 
+                    id={"yt-video-channel-search"}
+                    data={searchAutocomplete}
+                    placeholder='Search Channel Video...'
+                    getSearchAutocomplete={getSearchAutocomplete}
+                    handleSearch={handleSearch}
+                />
+                <InfiniteScroll
+                    dataLength={searchResults.length}
+                    next={fetchMoreSearchResults}
+                    hasMore={hasMoreSearch}
+                    loader={
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <CircularProgress disableShrink/>
+                        </Box>
+                    }
+                    endMessage={
+                        searchResults.length > 0 &&
+                        <Typography textAlign={'center'} marginTop={2} color={'text.secondary'}>
+                            Yay! You have seen it all
+                        </Typography>
+                    }
+                    style={{marginTop: 24, overflowY: 'hidden'}}
+                >
+                    <Grid container rowSpacing={4} columnSpacing={2}>
+                        {(isLoading ? Array.from(new Array(9)) : searchResults).map((video, index) => (
+                            <YoutubeCard video={video} isChannel key={`${video?.id}-${index}`?? index}/>
+                        ))}
+                    </Grid>
+                </InfiniteScroll>
+            </Box>
+        },{
             label: "About",
             component: 
             <Box width={"100%"}>
@@ -139,7 +211,17 @@ export default function Home({channelInfo, videosData, statsData, continuationId
                                 {channelInfo.subscriberText}
                             </span>
                         </Typography>
-                        <Typography variant='body2' color={'text.secondary'}>
+                        <Typography 
+                            variant='body2'
+                            color={'text.secondary'}
+                            sx={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                display: "-webkit-box",
+                                WebkitLineClamp: "2",
+                                WebkitBoxOrient: "vertical",
+                            }}
+                        >
                             {channelInfo.description}
                         </Typography>
                     </Box>
@@ -176,7 +258,7 @@ export async function getServerSideProps({query}){
             channelInfo: channelData.data,
             videosData: videosData.data,
             statsData : statsData.data,
-            continuationId: videosData.continuation,
+            videoContinuation: videosData.continuation,
             actualTime: Date.now() - entry,
             totalTime: channelData.time + videosData.time + statsData.time
         }

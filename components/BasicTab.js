@@ -2,7 +2,7 @@ import {Tabs, Tab, Box} from '@mui/material'
 import TabPanel from './BasicTabPanel';
 import { useState } from 'react';
 
-export default function BasicTab({links, ...rest}) {
+export default function BasicTab({links, activeTab}) {
     const [value, setValue] = useState(0);
   
     const handleChange = (event, newValue) => {

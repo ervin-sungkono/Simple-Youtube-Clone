@@ -9,10 +9,26 @@ export default async function handler(req, res){
         query: query
     }
     const searchResult = await ytch.searchChannel(payload)
-        .then(res => res)
+        .then(videos => ({
+            data: videos.items.filter(video => video.type === "video").map(video => ({
+                id: video.videoId,
+                title: video.title,
+                channel: {
+                    id: video.authorId,
+                    name: video.author
+                },
+                thumbnail: {
+                    url: video.videoThumbnails?.[video.videoThumbnails.length - 1].url
+                },
+                views: video.viewCount,
+                uploadedAt: video.publishedText
+            })),
+            continuation: videos.continuation
+        }))
         .catch(e => console.log(e))
     return res.json({
-        data: searchResult,
+        data: searchResult.data,
+        continuation: searchResult.continuation,
         time: Date.now() - entry
     })
 }

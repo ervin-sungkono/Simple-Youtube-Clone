@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { TextField, Autocomplete, Stack, IconButton, InputAdornment } from "@mui/material";
 import { Search } from "@mui/icons-material";
 
-export default function SearchBar({data, getSearchAutocomplete, handleSearch}){
+export default function SearchBar({id, data, placeholder = "Search Video...", getSearchAutocomplete, handleSearch}){
     const [query, setQuery] = useState("")
 
     const THROTTLE_DELAY = 100
@@ -13,17 +13,17 @@ export default function SearchBar({data, getSearchAutocomplete, handleSearch}){
     }
 
     const handleInputSearch = () => {
-      const query = document.getElementById('yt-video-search')?.value ?? ""
-      handleSearch(query)
+      const searchParams = document.getElementById(id)?.value ?? ""
+      handleSearch(searchParams)
     }
 
     useEffect(() => {
         getSearchAutocomplete(query)
     }, [query])
     return(
-        <Stack sx={{width: '480px', margin: 'auto'}}>
+        <Stack width={"100%"} sx={{maxWidth: '480px', margin: 'auto'}}>
             <Autocomplete
-              id="yt-video-search"
+              id={id}
               freeSolo
               options={data.slice(0,8)}
               getOptionLabel={(option) => option.title ?? option}
@@ -39,7 +39,7 @@ export default function SearchBar({data, getSearchAutocomplete, handleSearch}){
                 <TextField 
                   {...params} 
                   variant="outlined"
-                  placeholder="Search Video.."
+                  placeholder={placeholder}
                   InputProps={{
                     ...params.InputProps,
                     style: {
